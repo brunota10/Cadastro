@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Udi Postos</string>
+    <string name="title_activity_salvar">Salvar</string>
+    <string name="title_activity_cadastro">Logar</string>
+    <string name="title_activity_main">Udi Postos</string>
+    <string name="msg2" />
+    <string name="msg3" />
+</resources>
+
