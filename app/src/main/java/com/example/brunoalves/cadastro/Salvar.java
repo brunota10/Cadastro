@@ -314,7 +314,7 @@ public class Salvar extends AppCompatActivity implements LocationListener {
         @Override
         protected void onPostExecute(String resultado) {
             Toast.makeText(contexto, resultado, Toast.LENGTH_SHORT).show();
-            //novaTela();
+            //novaTela();//
             finish();
         }
 //
