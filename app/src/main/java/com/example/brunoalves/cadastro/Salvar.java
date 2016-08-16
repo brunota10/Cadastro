@@ -317,7 +317,7 @@ public class Salvar extends AppCompatActivity implements LocationListener {
             //novaTela();
             finish();
         }
-
+//
         private String downloadUrl(String myurl) throws IOException {
             InputStream retorno = null;
             try {
