@@ -5,4 +5,7 @@
     <color name="colorAccent">#FF4081</color>
     <color name="white_opaque">#FFFFFFFF</color>
     <color name="pitch_black">#FF000000</color>
+    <color name="roxo">#961a8d</color>
+    <color name="amarelo">#f7d117</color>
+    <color name="cinza">#d8d9d9</color>
 </resources>
