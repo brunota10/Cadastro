@@ -39,15 +39,16 @@ import java.util.List;
 public class Salvar extends AppCompatActivity implements LocationListener {
 
     private String enderecoSalvar = "http://www.brunoasilva.com.br/android/salvarr.php?";
-    private EditText cnpj1, fantasia1, logradouro1, numero1, bairro1, cep1, cidade1, telefone1, usuario1,senha1,repeteSenha1;
+    private EditText cnpj1, fantasia1, logradouro1, numero1, bairro1, cep1, telefone1, usuario1,senha1,repeteSenha1;
     private String cnpj, fantasia,logradouro,numero,bairro,cep,cidade,telefone,usuario,senha,repeteSenha,longitudee,latitudee,estado,retornoFinal;
-    private Spinner estado1;
+    private Spinner estado1, cidade1;
     private TextWatcher cnpjMask, telMask, cepMask;
     private String enderecoEstado = "http://www.brunoasilva.com.br/android/estado.php";
+    private String enderecoCidade = "http://www.brunoasilva.com.br/android/cidade.php";
     private ProgressBar barra;
-    private Spinner spinner;
     private Context contexto = this;
-    private List<Estados> lista;
+    private List<Estados> listaEstado;
+    private List<Cidades> listaCidade;
     protected LocationManager locationManager;
     Double latitude, longitude;
     private int qtdErros = 0;
@@ -84,16 +85,16 @@ public class Salvar extends AppCompatActivity implements LocationListener {
         numero1 = ((EditText) findViewById(R.id.editTextNumero));
         bairro1 = ((EditText) findViewById(R.id.editTextBairro));
         cep1 = ((EditText) findViewById(R.id.editTextCep));
-        cidade1 = ((EditText) findViewById(R.id.editTextCidade));
+        cidade1 = (Spinner) findViewById(R.id.spinner2);
         estado1 = (Spinner) findViewById(R.id.spinner);
         telefone1 = ((EditText) findViewById(R.id.editTextTelefone));
         usuario1 = ((EditText) findViewById(R.id.editTextUsuario));
         senha1 = ((EditText) findViewById(R.id.editTextSenha));
         repeteSenha1 = ((EditText) findViewById(R.id.editTextRepeteSenha));
-
         barra = (ProgressBar) findViewById(R.id.progressBar);
-        spinner = (Spinner) findViewById(R.id.spinner);
+
         conexaoEstado(enderecoEstado);
+        conexaoCidade(enderecoCidade);
     }
 
     //****************************************************************************************************************
@@ -116,7 +117,7 @@ public class Salvar extends AppCompatActivity implements LocationListener {
     public void validForm(View v) throws UnsupportedEncodingException, NoSuchAlgorithmException {
         cnpj = cnpj1.getText().toString();  fantasia = fantasia1.getText().toString(); logradouro = logradouro1.getText().toString();
         numero = numero1.getText().toString();  bairro = bairro1.getText().toString();  cep = cep1.getText().toString();
-        cidade = cidade1.getText().toString();  telefone = telefone1.getText().toString();  usuario = usuario1.getText().toString();
+        cidade = cidade1.getSelectedItem().toString();  telefone = telefone1.getText().toString();  usuario = usuario1.getText().toString();
         senha = senha1.getText().toString();  repeteSenha = repeteSenha1.getText().toString();  estado = estado1.getSelectedItem().toString();
         latitudee = "10.100000"; longitudee = "10.100000";
 
@@ -150,11 +151,6 @@ public class Salvar extends AppCompatActivity implements LocationListener {
             cep1.requestFocus();
             qtdErros ++;
         }
-        if(cidade.equals("")){
-            Toast.makeText(this, "Cidade é obrigatório!", Toast.LENGTH_SHORT).show();
-            cidade1.requestFocus();
-            qtdErros ++;
-        }
         if(telefone.equals("") || telefone.length()  < 12){
             Toast.makeText(this, "Telefone informe DDD mais 9 digítos!!", Toast.LENGTH_SHORT).show();
             telefone1.requestFocus();
@@ -185,6 +181,7 @@ public class Salvar extends AppCompatActivity implements LocationListener {
                 usuario = URLencode(usuario);
                 senha = getBase64(senha);
                 senha = URLencode(senha);
+                cidade = URLencode(cidade);
                 estado = URLencode(estado);
                 latitudee = URLencode(latitudee);
                 longitudee = URLencode(longitudee);
@@ -231,7 +228,7 @@ public class Salvar extends AppCompatActivity implements LocationListener {
                     new ComunicacaoAssincrona().execute(url);
 
                     cnpj1.setText("");fantasia1.setText("");logradouro1.setText("");numero1.setText("");bairro1.setText("");
-                    cep1.setText("");cidade1.setText("");estado1.setSelection(0);telefone1.setText("");usuario1.setText("");
+                    cep1.setText("");cidade1.setSelection(0);estado1.setSelection(0);telefone1.setText("");usuario1.setText("");
                     senha1.setText("");repeteSenha1.setText("");
                     cnpj1.requestFocus();
                 } else {
@@ -285,6 +282,19 @@ public class Salvar extends AppCompatActivity implements LocationListener {
         NetworkInfo redeInfo = connMgr.getActiveNetworkInfo();
         if (redeInfo != null && redeInfo.isConnected()) {
             new ComunicacaoAssincronaEstados().execute(url);
+        } else {
+            Toast.makeText(this, R.string.msg2, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    //****************************************************************************************************************
+
+    private void conexaoCidade(String url) {
+        barra.setVisibility(View.VISIBLE);
+        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo redeInfo = connMgr.getActiveNetworkInfo();
+        if (redeInfo != null && redeInfo.isConnected()) {
+            new ComunicacaoAssincronaCidades().execute(url);
         } else {
             Toast.makeText(this, R.string.msg2, Toast.LENGTH_SHORT).show();
         }
@@ -372,9 +382,9 @@ public class Salvar extends AppCompatActivity implements LocationListener {
             ArrayAdapter<Estados> adaptador;
             try {
                 JSONArray json = new JSONArray(resultado);
-                lista = converteJSONemLista(json);
-                adaptador = new ArrayAdapter<Estados>(contexto, android.R.layout.simple_list_item_1, lista);
-                spinner.setAdapter(adaptador);
+                listaEstado = converteJSONemLista(json);
+                adaptador = new ArrayAdapter<Estados>(contexto, android.R.layout.simple_list_item_1, listaEstado);
+                estado1.setAdapter(adaptador);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -426,6 +436,82 @@ public class Salvar extends AppCompatActivity implements LocationListener {
                 listaDeEstados.add(estado);
             }
             return listaDeEstados;
+        }
+    }
+
+    //****************************************************************************************************************
+
+    private class ComunicacaoAssincronaCidades extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... urls) {
+            try {
+                return downloadUrl(urls[0]);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return getString(R.string.msg3);
+            }
+        }
+
+        @Override
+        protected void onPostExecute(String resultado) {
+            //Toast.makeText(contexto, resultado, Toast.LENGTH_SHORT).show();
+            barra.setVisibility(View.GONE);
+            ArrayAdapter<Cidades> adaptador;
+            try {
+                JSONArray json = new JSONArray(resultado);
+                listaCidade = converteJSONemLista(json);
+                adaptador = new ArrayAdapter<Cidades>(contexto, android.R.layout.simple_list_item_1, listaCidade);
+                cidade1.setAdapter(adaptador);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        private String downloadUrl(String myurl) throws IOException {
+            InputStream retorno = null;
+            try {
+                URL url = new URL(myurl);
+                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                con.setReadTimeout(10000 /* milliseconds */);
+                con.setConnectTimeout(15000 /* milliseconds */);
+                con.setRequestMethod("GET");
+                con.setDoInput(true);
+                // realiza a requisição HTPP
+                con.connect();
+                retorno = con.getInputStream();
+                // Converte  a resposta em string
+                String retornoString = converteStreamParaString(retorno);
+                return retornoString;
+            } finally {
+                if (retorno != null) {
+                    retorno.close();
+                }
+            }
+        }
+
+        // recebe um InputStream e retorna uma String
+        public String converteStreamParaString(InputStream stream) throws IOException, UnsupportedEncodingException {
+            byte[] buffer1k = new byte[1024];
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            int bytesLidos;
+            while ((bytesLidos = stream.read(buffer1k)) != -1) {
+                buffer.write(buffer1k, 0, bytesLidos);
+            }
+            return new String(buffer.toByteArray(), "UTF-8");
+        }
+
+        public List<Cidades> converteJSONemLista(JSONArray json) throws JSONException {
+            List<Cidades> listaDeCidades = new ArrayList<Cidades>();
+            for (int i = 0; i < json.length(); i++) {
+                JSONObject u = json.getJSONObject(i);
+                Cidades cidade = new Cidades(
+                        u.getInt("id"),
+                        u.getString("nome"),
+                        u.getInt("estado")
+                );
+                listaDeCidades.add(cidade);
+            }
+            return listaDeCidades;
         }
     }
 }
