@@ -4,8 +4,7 @@
     android:layout_height="match_parent"
     android:shrinkColumns="*"
     android:stretchColumns="*"
-    android:padding="20dp"
-    android:background="@color/amarelo">
+    android:padding="20dp">
 
     <TableRow
         android:layout_height="wrap_content"
